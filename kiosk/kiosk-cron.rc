@@ -1,0 +1,14 @@
+service kioskhttpd /system/bin/sh /data/local/kiosk/httpd.sh
+    class late_start
+    user root
+    seclabel u:r:shell:s0
+
+service kiosksched /system/bin/sh /data/local/kiosk/scheduler.sh
+    class late_start
+    user root
+    seclabel u:r:shell:s0
+
+service kiosktouch /system/bin/sh /data/local/kiosk/touchd.sh
+    class late_start
+    user root
+    seclabel u:r:shell:s0

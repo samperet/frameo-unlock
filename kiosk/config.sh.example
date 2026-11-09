@@ -1,0 +1,51 @@
+#!/system/bin/sh
+# Copy to config.sh and fill in your own values, then run ../install-kiosk.sh.
+# This file lives on the FRAME at /data/local/kiosk/config.sh and is sourced by
+# every kiosk service.
+KROOT=/data/local/kiosk
+WWW=$KROOT/www
+MODE=$KROOT/mode
+LASTSLOT=$KROOT/last_slot
+LOG=$KROOT/kiosk.log
+HTTP_PORT=8089
+
+# --- what the two views are -------------------------------------------------
+# DASH_URL : the web page you want in the "dashboard" slot (your Home Assistant
+#            board, a status page, anything). SLIDE_URL is served locally by the
+#            frame's own tiny web server (see httpd.sh) from the generated
+#            slideshow.html — leave it as-is.
+DASH_URL="http://CHANGE.ME:8123/"
+SLIDE_URL="http://127.0.0.1:8089/slideshow.html"
+
+# URL-encoded forms, needed by Fully Kiosk's REST loadUrl.
+# Compute DASH_ENC on your host with:
+#   python3 -c 'import urllib.parse,sys;print(urllib.parse.quote(sys.argv[1],""))' "http://CHANGE.ME:8123/"
+DASH_ENC="http%3A%2F%2FCHANGE.ME%3A8123%2F"
+SLIDE_ENC="http%3A%2F%2F127.0.0.1%3A8089%2Fslideshow.html"
+
+# Fully Kiosk "Remote Administration" password (Settings > Remote Administration
+# > enable it and set a password; the toggle talks to 127.0.0.1:2323).
+FULLY_PW="CHANGE_ME"
+
+# --- daily schedule, minutes since midnight ---------------------------------
+# Example: dashboard 06:00–08:00, slideshow 08:00–20:30, screen off overnight.
+T_MORNING=360    # 06:00  screen on, show dashboard
+T_DAY=480        # 08:00  switch to slideshow (the all-day resting view)
+T_NIGHT=1230     # 20:30  screen off until T_MORNING
+
+log(){ echo "$(date '+%m-%d %H:%M:%S') $*" >> "$LOG" 2>/dev/null; }
+
+cur_slot(){
+  h=$(date +%H); mn=$(date +%M); M=$((10#$h*60 + 10#$mn))
+  if   [ $M -ge $T_MORNING ] && [ $M -lt $T_DAY ];   then echo MORNING
+  elif [ $M -ge $T_DAY ]     && [ $M -lt $T_NIGHT ]; then echo DAY
+  else echo NIGHT; fi
+}
+
+# Load a URL into Fully Kiosk via its local REST interface.
+fw_load(){  busybox wget -q -T 6 -O /dev/null "http://127.0.0.1:2323/?cmd=loadUrl&url=$1&type=json&password=${FULLY_PW}" 2>/dev/null; }
+fw_ready(){ busybox wget -q -T 3 -O /dev/null "http://127.0.0.1:2323/?cmd=deviceInfo&type=json&password=${FULLY_PW}" 2>/dev/null; }
+
+is_awake(){ dumpsys power 2>/dev/null | grep -q 'mWakefulness=Awake'; }
+screen_on(){  is_awake || input keyevent 224; }   # KEYCODE_WAKEUP
+screen_off(){ is_awake && input keyevent 223; }   # KEYCODE_SLEEP

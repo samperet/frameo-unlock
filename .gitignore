@@ -1,0 +1,32 @@
+# Build trees (large, cloned/built by scripts/00-prereqs.sh)
+/build/
+/vendor/
+rkbin/
+rkdeveloptool/
+u-boot/
+prebuilts/
+
+# Device images and dumps — NEVER commit these. They are specific to your unit
+# and a boot/eMMC dump can contain wifi creds, tokens and other private data.
+*.img
+*.bin
+*.gz
+*.cpio
+dumps/
+backups/
+
+# Your own filled-in config
+kiosk/config.sh
+*.local
+
+# Secrets / keys
+*.pem
+*_ed25519*
+*.key
+adbkey
+adbkey.pub
+
+# OS cruft
+.DS_Store
+*.swp
+__pycache__/
