@@ -14,7 +14,9 @@ Other **RK3326/PX30** Frameo and generic Android photo frames. The method is not
 model-specific in principle, but these differ per unit and you must confirm them:
 
 - **Entering maskrom** — test pads to short, a hidden button, or holding a key
-  while plugging USB. Find it before you start.
+  while plugging USB. Find it before you start. On the **DPF156 this means
+  opening the frame** (pry off the back cover) and bridging the two internal
+  "Update" solder pads on power-up — there is no externally accessible button.
 - **Partition layout** — stage 40 finds the `boot` partition by name from the
   GPT, so it adapts, but verify `sgdisk -p` output looks sane.
 - **Blob versions** — `scripts/00-prereqs.sh` pulls the latest `rk3326_ddr_*`,

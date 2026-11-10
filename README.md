@@ -11,6 +11,38 @@ stuck at *"unauthorized"* with **no on-screen authorize dialog**.
 
 ---
 
+## ELI5 — what is this, and what do I need?
+
+A Frameo frame is a tiny, **locked** Android computer. "Unlocking" it just means
+getting it to trust *your* computer, so you can make it show whatever you want
+(a dashboard, your own photo slideshow) instead of only the Frameo app.
+
+You need three things:
+
+1. **A Linux computer** with a USB port (a laptop/PC running Linux — or a Linux
+   VM). This does all the work and talks to the frame over a USB cable.
+2. **A spare SD card** (and a card reader if your computer has no slot). We turn
+   it into a temporary "rescue boot disk" that tricks the frame into letting us
+   in. Keep it afterward — it's also your undo/recovery disk.
+3. **Access to the frame's hidden "Update" button.** There is **no button on the
+   outside.** You have to **open the frame** — pop/pry off the back cover — and
+   reach two little metal contacts ("solder pads") on the circuit board. You
+   **touch them together while plugging in USB**, and that's what puts the frame
+   into the special mode we need. (On some other frame models this is a recessed
+   button instead, but on the tested DPF156 you must open it.)
+
+Then you plug the frame into the Linux computer and run the steps — or just point
+[Claude Code](skills/frameo-unlock/SKILL.md) at this repo and let it walk you
+through each one. At the end the frame permanently trusts your computer, and you
+**never have to open it again.**
+
+**Is it risky?** A little. You're rewriting the part that makes the frame turn
+on, and the maker gives no official "undo." Follow [`docs/safety.md`](docs/safety.md),
+keep every backup the scripts make, and keep that SD card. If something goes
+wrong, the SD card gets you back in.
+
+---
+
 ## Why this is hard (and how it's solved)
 
 A locked Frameo gives you two dead ends:
