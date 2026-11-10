@@ -9,7 +9,7 @@ sudo apt-get install -y \
   build-essential git bc bison flex libssl-dev python3 python3-pyelftools \
   gcc-aarch64-linux-gnu device-tree-compiler libusb-1.0-0-dev pkg-config \
   libgnutls28-dev swig android-sdk-platform-tools-common android-tools-adb \
-  gdisk parted curl unzip numfmt 2>/dev/null || true
+  gdisk parted curl unzip autoconf automake libudev-dev
 
 cd "$BUILD_DIR"
 
