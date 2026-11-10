@@ -32,9 +32,32 @@ say "Reading GPT (LBA 0..33) → emmc_gpt.bin"
 grep -qa 'EFI PART' <(dd if="$DUMP_DIR/emmc_gpt.bin" bs=512 skip=1 count=1 2>/dev/null) \
   && ok "valid GPT captured" || warn "no GPT magic — this unit may use a different layout"
 
+# Never overwrite an existing backup: after zeroing, a re-run would "back up"
+# the zeros over the only good copy — the easiest way to brick the frame.
+if ls "$DUMP_DIR"/idb_sec_*.bin >/dev/null 2>&1; then
+  die "ID-block backups already exist in $DUMP_DIR — refusing to overwrite them.
+       If stage 20 already zeroed the eMMC, go on to stage 30. If these files
+       belong to a DIFFERENT frame, move them somewhere safe first."
+fi
+
 say "Backing up the 5 ID-block header sectors…"
 for s in $IDB_SECTORS; do "$RKDEV" rl "$s" 1 "$DUMP_DIR/idb_sec_${s}.bin"; done
 head -c4 "$DUMP_DIR/idb_sec_64.bin" | xxd | sed 's/^/  sec64: /'
+
+# Validate before anything destructive: every copy must carry the RK ID-block
+# magic and all 5 must be identical. Then re-read once and compare, to rule out
+# a flaky USB read.
+for s in $IDB_SECTORS; do
+  f="$DUMP_DIR/idb_sec_${s}.bin"
+  [ "$(stat -c%s "$f")" = 512 ] || die "sector $s backup is not 512 bytes — not zeroing"
+  [ "$(head -c4 "$f" | xxd -p)" = "3b8cdcfc" ] \
+    || die "sector $s has no ID-block magic (3b8cdcfc) — read is bad or layout differs; not zeroing"
+  cmp -s "$f" "$DUMP_DIR/idb_sec_64.bin" || die "sector $s differs from sector 64 — not zeroing"
+  "$RKDEV" rl "$s" 1 "$BUILD_DIR/idb_verify.bin"
+  cmp -s "$f" "$BUILD_DIR/idb_verify.bin" || die "sector $s re-read mismatch — flaky USB? not zeroing"
+done
+cp "$DUMP_DIR/idb_sec_64.bin" "$DUMP_DIR/idb_sec_64.bin.bak"
+ok "all 5 ID-block copies valid, identical and re-read cleanly (extra copy: idb_sec_64.bin.bak)"
 
 warn "NEXT STEP ZEROES THE eMMC BOOT HEADER. The frame will not boot from eMMC"
 warn "until stage 60 restores these sectors. Your backups are in: $DUMP_DIR"
