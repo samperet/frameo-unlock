@@ -72,7 +72,10 @@ Full explanation with the *why* behind each step: [`docs/how-it-works.md`](docs/
 This repo ships a **Claude Code skill** that walks the whole process
 interactively, runs each stage, and stops to confirm every physical step (loader
 mode, SD swap, power-cycle). See [`skills/frameo-unlock/`](skills/frameo-unlock/SKILL.md).
-Point Claude Code at this repo and say *"unlock my Frameo."*
+Run `claude` from inside this repo and say *"unlock my Frameo."* — the skill is
+auto-loaded via `.claude/skills/frameo-unlock` (a symlink to `skills/frameo-unlock`).
+To make it available from any directory instead:
+`cp -r skills/frameo-unlock ~/.claude/skills/`.
 
 ### B. Run the stages yourself
 ```bash
